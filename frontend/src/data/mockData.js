@@ -1,0 +1,55 @@
+export const mockListings = [
+  {
+    id: 'msme-001',
+    name: 'CityFresh Organics',
+    category: 'Food & Beverage',
+    city: 'Bengaluru',
+    gst: '29AAEPM1234Q1ZB',
+    founded: 2019,
+    target: 2500000,
+    equityOffered: 12,
+    raised: 850000,
+    riskLabel: 'Moderate',
+    description: 'Farm-to-table grocery microbrand selling fresh produce through neighbourhood delivery.',
+  },
+  {
+    id: 'msme-002',
+    name: 'Asha Textiles',
+    category: 'Manufacturing',
+    city: 'Surat',
+    gst: '24AABPA1234M1Z1',
+    founded: 2015,
+    target: 4000000,
+    equityOffered: 15,
+    raised: 2300000,
+    riskLabel: 'High',
+    description: 'Women-led apparel exporter with local artisans and low-cost manufacturing.',
+  },
+  {
+    id: 'msme-003',
+    name: 'MobiHealth Labs',
+    category: 'Healthcare',
+    city: 'Hyderabad',
+    gst: '36AAAFT1234C1Z5',
+    founded: 2021,
+    target: 1800000,
+    equityOffered: 8,
+    raised: 400000,
+    riskLabel: 'Speculative',
+    description: 'Digital diagnostic kiosks and teleconsultation platform for tier-2 towns.',
+  },
+]
+
+export const mockPortfolio = {
+  totalValue: 1428000,
+  holdings: [
+    { name: 'CityFresh Organics', tokens: 320, value: 640000, dividendYield: '5.2%' },
+    { name: 'Asha Textiles', tokens: 180, value: 432000, dividendYield: '4.8%' },
+    { name: 'MobiHealth Labs', tokens: 90, value: 356000, dividendYield: '0.0%' },
+  ],
+  dividends: [
+    { month: 'Jan 2026', amount: 5200 },
+    { month: 'Feb 2026', amount: 6100 },
+    { month: 'Mar 2026', amount: 7600 },
+  ],
+}
