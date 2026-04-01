@@ -1,0 +1,8 @@
+node_modules/
+**/node_modules/
+.env
+**/.env
+artifacts/
+cache/node_modules/  
+**/.env  
+blockchain/artifacts/ 
