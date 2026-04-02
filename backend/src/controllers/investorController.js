@@ -117,8 +117,13 @@ const getPortfolio = async (req, res) => {
     for (const tx of transactions) {
       if (!holdings[tx.msmeId]) {
         holdings[tx.msmeId] = {
-          msmeId: tx.msmeId, contractAddress: tx.contractAddress,
-          tokensHeld: 0, totalInvested: 0, dividendsReceived: 0,
+          msmeId: tx.msmeId,
+          contractAddress: tx.contractAddress,
+          tokensHeld: 0,
+          totalInvested: 0,
+          dividendsReceived: 0,
+          tokenPrice: 0,
+          currentValue: 0,
           transactions: []
         };
       }
@@ -126,11 +131,24 @@ const getPortfolio = async (req, res) => {
       if (tx.type === 'buy_tokens') {
         holdings[tx.msmeId].tokensHeld += tx.tokens;
         holdings[tx.msmeId].totalInvested += tx.amount;
+
+        const txTokenPrice = tx.tokens > 0 ? (tx.amount / tx.tokens) : 0;
+        if (txTokenPrice > 0) {
+          holdings[tx.msmeId].tokenPrice = txTokenPrice;
+        }
       }
+
       if (tx.type === 'claim_dividend') {
         holdings[tx.msmeId].dividendsReceived += tx.amount;
       }
+
       holdings[tx.msmeId].transactions.push(tx);
+    }
+
+    for (const holding of Object.values(holdings)) {
+      if (holding.tokensHeld > 0 && holding.tokenPrice > 0) {
+        holding.currentValue = holding.tokensHeld * holding.tokenPrice;
+      }
     }
 
     res.json({

@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getKYCStatus, getPortfolio } from '../api'
 import { useWallet } from '../WalletContext'
+
+const formatINR = (value) => Number(value || 0).toLocaleString('en-IN')
 
 export default function DashboardPage() {
   const {
@@ -42,8 +44,9 @@ export default function DashboardPage() {
 
   const totalInvestments = portfolio?.allTransactions?.length || 0
   const totalInvested = portfolio?.holdings?.reduce((sum, item) => sum + (item.totalInvested || 0), 0) || 0
-  const totalTokens = portfolio?.holdings?.reduce((sum, item) => sum + (item.tokensHeld || 0), 0) || 0
+  const totalShares = portfolio?.holdings?.reduce((sum, item) => sum + (item.tokensHeld || 0), 0) || 0
   const totalDividends = portfolio?.holdings?.reduce((sum, item) => sum + (item.dividendsReceived || 0), 0) || 0
+  const portfolioValue = portfolio?.holdings?.reduce((sum, item) => sum + (item.currentValue || 0), 0) || 0
 
   const kycLabel = kycStatus?.kycStatus === 'approved'
     ? '✅ Approved'
@@ -55,7 +58,7 @@ export default function DashboardPage() {
     <section>
       <div className="card">
         <h2>Investor Dashboard</h2>
-        <p>Use your connected wallet to see KYC status, investments, holdings, and dividends.</p>
+        <p>See your portfolio, share ownership, dividends and token holdings.</p>
 
         {!isMetaMaskInstalled && (
           <div style={{ marginTop: 16, color: '#fbbf24' }}>
@@ -96,61 +99,69 @@ export default function DashboardPage() {
 
       {!loading && isConnected && isCorrectNetwork && (
         <>
-          <div className="card" style={{ marginTop: 24 }}>
-            <h3>KYC status</h3>
-            <p>{kycLabel}</p>
-            {kycStatus?.walletAddress && <p>Wallet: <strong>{kycStatus.walletAddress}</strong></p>}
-            {kycStatus?.kycStatus !== 'approved' && (
-              <p>
-                <Link to="/kyc" className="button-secondary">Complete KYC</Link>
-              </p>
-            )}
-          </div>
-
           <div className="section-grid" style={{ marginTop: 24, gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
             <div className="card">
-              <h3>Total investments</h3>
+              <h3>Total companies</h3>
               <p style={{ fontSize: '2rem', marginTop: 14 }}>{totalInvestments}</p>
             </div>
             <div className="card">
               <h3>Total invested</h3>
-              <p style={{ fontSize: '2rem', marginTop: 14 }}>₹{totalInvested.toLocaleString()}</p>
+              <p style={{ fontSize: '2rem', marginTop: 14 }}>₹{formatINR(totalInvested)}</p>
             </div>
             <div className="card">
-              <h3>Total tokens</h3>
-              <p style={{ fontSize: '2rem', marginTop: 14 }}>{totalTokens}</p>
+              <h3>Total shares</h3>
+              <p style={{ fontSize: '2rem', marginTop: 14 }}>{totalShares}</p>
             </div>
             <div className="card">
               <h3>Dividends received</h3>
-              <p style={{ fontSize: '2rem', marginTop: 14 }}>₹{totalDividends.toLocaleString()}</p>
+              <p style={{ fontSize: '2rem', marginTop: 14 }}>₹{formatINR(totalDividends)}</p>
             </div>
           </div>
 
           <div className="card" style={{ marginTop: 24 }}>
-            <h3>Holdings</h3>
+            <h3>Portfolio value</h3>
+            <p style={{ fontSize: '2rem', marginTop: 14 }}>₹{formatINR(portfolioValue)}</p>
+          </div>
+
+          <div className="card" style={{ marginTop: 24 }}>
+            <h3>Your holdings</h3>
             {portfolio?.holdings?.length > 0 ? (
-              <div style={{ display: 'grid', gap: 14, marginTop: 18 }}>
-                {portfolio.holdings.map((holding) => (
-                  <div key={holding.msmeId} style={{ display: 'grid', gap: 10, padding: 16, background: 'rgba(148, 163, 184, 0.08)', borderRadius: 16 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                      <div>
-                        <strong>{holding.msmeId}</strong>
-                        <p style={{ margin: 4, color: '#94a3b8' }}>{holding.contractAddress || 'No token contract'}</p>
+              <div style={{ display: 'grid', gap: 18, marginTop: 18 }}>
+                {portfolio.holdings.map((holding) => {
+                  const ownership = holding.ownershipPerToken
+                    ? (holding.tokensHeld || 0) * holding.ownershipPerToken
+                    : null
+                  return (
+                    <div key={holding.msmeId} style={{ padding: 16, background: 'rgba(148, 163, 184, 0.08)', borderRadius: 16 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                        <div>
+                          <strong>{holding.businessName || `MSME ${holding.msmeId}`}</strong>
+                          <p style={{ margin: 4, color: '#94a3b8' }}>{holding.contractAddress || 'No token contract'}</p>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <p>{holding.tokensHeld} shares</p>
+                          <small>₹{formatINR(holding.totalInvested)}</small>
+                        </div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <p>{holding.tokensHeld} tokens</p>
-                        <small>₹{holding.totalInvested.toLocaleString()} invested</small>
+                      <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+                        <span>Ownership: <strong>{ownership != null ? `${ownership.toFixed(2)}%` : 'N/A'}</strong></span>
+                        <span>Share price: ₹{formatINR(holding.tokenPrice)}</span>
+                        <span>Investment value: ₹{formatINR(holding.currentValue || 0)}</span>
+                        <span>1 share = {holding.ownershipPerToken?.toFixed(2) ?? '0.00'}%</span>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                      <span>Dividends: ₹{holding.dividendsReceived.toLocaleString()}</span>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             ) : (
-              <p style={{ marginTop: 16 }}>No holdings found for this wallet yet.</p>
+              <p style={{ marginTop: 16 }}>You do not have any share holdings yet.</p>
             )}
+          </div>
+
+          <div className="card" style={{ marginTop: 24 }}>
+            <h3>Integrity check</h3>
+            <p>Token holdings are shown as shares, not just token counts.</p>
+            <p>If on-chain data is available, it is verified against your portfolio records.</p>
           </div>
         </>
       )}

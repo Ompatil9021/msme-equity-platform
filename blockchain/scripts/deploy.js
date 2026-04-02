@@ -5,48 +5,47 @@ async function main() {
   console.log("Deploying with account:", deployer.address);
   console.log("Account balance:", (await deployer.provider.getBalance(deployer.address)).toString());
 
-  // Example MSME — change these values per MSME listing
-  const params = {
-    name: "ChaiWala Token",
-    symbol: "CHAI",
-    msmeId: "msme_001",
-    businessName: "Mumbai Chai House",
-    category: "Food & Beverage",
-    city: "Mumbai",
-    gstNumber: "27AABCU9603R1ZX",
-    targetAmountWei: ethers.parseEther("0.1"),   // 0.1 test MATIC = demo target
-    equityPercentage: 10,                          // 10% equity offered
-    tokenPriceWei: ethers.parseEther("0.0001"),   // 0.0001 MATIC per token (~₹100)
-    totalTokensForSale: 1000,                      // 1000 tokens for sale
-    vestingMonths: 6,                              // 6 month founder vesting
-    fundingDays: 30,                               // 30 days to raise
-    founder: deployer.address,
-  };
-
-  console.log("\n📦 Deploying MSMEEquityToken...");
+  console.log("\n📦 Deploying MSMEEquityToken contract...");
   const MSMEEquityToken = await ethers.getContractFactory("MSMEEquityToken");
-
-  const token = await MSMEEquityToken.deploy(
-    params.name, params.symbol, params.msmeId,
-    params.businessName, params.category, params.city, params.gstNumber,
-    params.targetAmountWei, params.equityPercentage, params.tokenPriceWei,
-    params.totalTokensForSale, params.vestingMonths, params.fundingDays,
-    params.founder
-  );
-
+  const token = await MSMEEquityToken.deploy();
   await token.waitForDeployment();
-  const address = await token.getAddress();
+  const contractAddress = await token.getAddress();
 
   console.log("\n✅ MSMEEquityToken deployed!");
-  console.log("📍 Contract Address:", address);
-  console.log("🔗 Polygonscan:", `https://mumbai.polygonscan.com/address/${address}`);
+  console.log("📍 Contract Address:", contractAddress);
+  console.log("🔗 Polygonscan:", `https://mumbai.polygonscan.com/address/${contractAddress}`);
   console.log("\n📋 Save this address in your .env files!\n");
 
-  // Auto-approve deployer for KYC demo
-  console.log("🔐 Approving deployer for KYC...");
-  const tx = await token.approveKYC(deployer.address);
-  await tx.wait();
+  const msmeParams = {
+    firestoreId: "msme_001",
+    totalTokenSupply: 100,
+    tokensForSale: 3,
+    tokenPriceWei: ethers.parseEther("0.025"), // ₹2,000 per token at ₹80/MATIC
+    equityPercent: 20,                         // 20% equity offered overall
+    deadlineTimestamp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days from now
+  };
+
+  console.log("\n🧾 Registering sample MSME on-chain...");
+  const registerTx = await token.registerMSME(
+    msmeParams.firestoreId,
+    msmeParams.totalTokenSupply,
+    msmeParams.tokensForSale,
+    msmeParams.tokenPriceWei,
+    msmeParams.equityPercent,
+    msmeParams.deadlineTimestamp
+  );
+  const registerReceipt = await registerTx.wait();
+  const msmeRegisteredEvent = registerReceipt.events?.find((event) => event.event === "MSMERegistered");
+  const registeredMsmeId = msmeRegisteredEvent ? msmeRegisteredEvent.args.msmeId.toString() : "1";
+
+  console.log("✅ Sample MSME registered on-chain with msmeId:", registeredMsmeId);
+
+  console.log("\n🔐 Approving deployer for KYC...");
+  const kycTx = await token.approveKYC(deployer.address);
+  await kycTx.wait();
   console.log("✅ KYC approved for:", deployer.address);
+
+  console.log("\nAll done. Use this contract address and sample MSME ID in your frontend and backend config.");
 }
 
 main().catch((error) => {
