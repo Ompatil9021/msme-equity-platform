@@ -54,3 +54,29 @@
   background: rgba(59, 130, 246, 0.16);
   color: white;
 }
+
+.wallet-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wallet-actions button {
+  border: none;
+  background: #2563eb;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.wallet-actions button:hover {
+  background: #1d4ed8;
+}
+
+.wallet-address {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+}

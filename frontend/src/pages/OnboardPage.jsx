@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { submitListing } from '../api'
+import { useWallet } from '../WalletContext'
 
 const initialState = {
   businessName: '',
@@ -12,12 +13,12 @@ const initialState = {
   annualRevenue: '',
   employeeCount: '',
   businessDescription: '',
-  founderWallet: '',
   founderName: '',
   contactEmail: '',
 }
 
 export default function OnboardPage() {
+  const { account, isMetaMaskInstalled, isConnected, isCorrectNetwork, connectWallet, switchNetwork, truncateAddress } = useWallet()
   const [form, setForm] = useState(initialState)
   const [status, setStatus] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -34,6 +35,24 @@ export default function OnboardPage() {
     setStatus(null)
     setLoading(true)
 
+    if (!isMetaMaskInstalled) {
+      setError('Please install MetaMask to onboard your MSME.')
+      setLoading(false)
+      return
+    }
+
+    if (!isConnected || !account) {
+      setError('Please connect MetaMask before submitting your business.')
+      setLoading(false)
+      return
+    }
+
+    if (!isCorrectNetwork) {
+      setError('Please switch MetaMask to the correct network before submitting.')
+      setLoading(false)
+      return
+    }
+
     if (!form.businessName.trim()) {
       setError('Enter the business name.')
       setLoading(false)
@@ -44,14 +63,13 @@ export default function OnboardPage() {
       setLoading(false)
       return
     }
-    if (!form.founderWallet || !/^0x[a-fA-F0-9]{40}$/.test(form.founderWallet)) {
-      setError('Enter a valid founder wallet address.')
-      setLoading(false)
-      return
-    }
 
     try {
-      const result = await submitListing(form)
+      const payload = {
+        ...form,
+        founderWallet: account,
+      }
+      const result = await submitListing(payload)
       setStatus(result)
       setForm(initialState)
     } catch (err) {
@@ -66,6 +84,28 @@ export default function OnboardPage() {
       <div className="card">
         <h2>MSME Business Listing &amp; Onboarding</h2>
         <p>Register your business profile, fundraising target, equity terms, and documents for immutable access.</p>
+        <div style={{ marginTop: 16 }}>
+          {!isMetaMaskInstalled ? (
+            <div style={{ color: '#fbbf24' }}>MetaMask is required for onboarding. Install it and refresh.</div>
+          ) : !isConnected ? (
+            <button className="button-secondary" type="button" onClick={connectWallet}>
+              Connect MetaMask
+            </button>
+          ) : !isCorrectNetwork ? (
+            <button className="button-secondary" type="button" onClick={switchNetwork}>
+              Switch network
+            </button>
+          ) : (
+            <div style={{ marginTop: 10, color: '#a5f3fc' }}>
+              Connected as <strong>{truncateAddress(account)}</strong>
+            </div>
+          )}
+          {isMetaMaskInstalled && isConnected && (
+            <div style={{ marginTop: 10, color: '#a5f3fc' }}>
+              Founder wallet: <strong>{truncateAddress(account)}</strong>
+            </div>
+          )}
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="card" style={{ marginTop: 24 }}>
@@ -123,10 +163,6 @@ export default function OnboardPage() {
             <input name="employeeCount" value={form.employeeCount} type="number" onChange={handleChange} placeholder="15" required />
           </label>
           <label>
-            Founder wallet
-            <input name="founderWallet" value={form.founderWallet} onChange={handleChange} placeholder="0x..." required />
-          </label>
-          <label>
             Founder name
             <input name="founderName" value={form.founderName} onChange={handleChange} placeholder="Asha Patel" required />
           </label>
@@ -141,7 +177,7 @@ export default function OnboardPage() {
         </div>
 
         <div style={{ marginTop: 22, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <button className="button-primary" type="submit" disabled={loading}>
+          <button className="button-primary" type="submit" disabled={loading || !isConnected || !isCorrectNetwork || !isMetaMaskInstalled}>
             {loading ? 'Submitting...' : 'Submit listing request'}
           </button>
           <button className="button-secondary" type="button" onClick={() => setForm(initialState)}>

@@ -1,6 +1,7 @@
 const { getDb } = require('../config/firebase');
 const { uploadToIPFS } = require('../config/ipfs');
 const { v4: uuidv4 } = require('uuid');
+const { computeRiskScore } = require('./riskController');
 
 // POST /api/msme/list — Create new MSME listing
 const createMSMEListing = async (req, res) => {
@@ -14,6 +15,16 @@ const createMSMEListing = async (req, res) => {
     } = req.body;
 
     const msmeId = `msme_${uuidv4().replace(/-/g, '').slice(0, 12)}`;
+
+    const riskInfo = computeRiskScore({
+      annualRevenue: parseFloat(annualRevenue),
+      foundingYear: parseInt(foundingYear),
+      category,
+      city,
+      employeeCount: parseInt(employeeCount) || 0,
+      targetAmount: parseFloat(targetAmount),
+      equityPercentage: parseFloat(equityPercentage),
+    });
 
     // Build MSME data object
     const msmeData = {
@@ -31,10 +42,13 @@ const createMSMEListing = async (req, res) => {
       founderWallet: founderWallet.toLowerCase(),
       founderName: founderName?.trim() || '',
       contactEmail: contactEmail?.trim() || '',
-      status: 'pending_review',     // pending_review | active | funded | failed
-      contractAddress: null,        // Will be set after blockchain deploy
+      status: 'active',     // Active immediately for demo / submission flow
+      contractAddress: null,
       tokenSymbol: null,
       ipfsCid: null,
+      riskLabel: riskInfo.riskLabel,
+      riskScore: riskInfo.riskScore,
+      riskDescription: riskInfo.riskDescription,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -54,7 +68,7 @@ const createMSMEListing = async (req, res) => {
         msmeId,
         ipfsCid: ipfsResult.cid,
         ipfsUrl: ipfsResult.url,
-        status: 'pending_review',
+        status: 'active',
       }
     });
   } catch (err) {

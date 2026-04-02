@@ -1,54 +1,92 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { getKYCStatus, getPortfolio } from '../api'
+import { useWallet } from '../WalletContext'
 
 export default function DashboardPage() {
-  const [wallet, setWallet] = useState('')
+  const {
+    account,
+    isMetaMaskInstalled,
+    isConnected,
+    isCorrectNetwork,
+    connectWallet,
+    switchNetwork,
+    truncateAddress,
+  } = useWallet()
   const [kycStatus, setKYCStatus] = useState(null)
   const [portfolio, setPortfolio] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleLookup = async () => {
-    setError('')
-    setKYCStatus(null)
-    setPortfolio(null)
-
-    if (!wallet || !/^0x[a-fA-F0-9]{40}$/.test(wallet)) {
-      setError('Enter a valid Ethereum wallet address.')
-      return
-    }
-
-    try {
+  useEffect(() => {
+    const loadData = async () => {
+      if (!account || !isConnected || !isCorrectNetwork) return
       setLoading(true)
-      const [kyc, portfolioData] = await Promise.all([getKYCStatus(wallet), getPortfolio(wallet)])
-      setKYCStatus(kyc)
-      setPortfolio(portfolioData)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
+      setError('')
+      setKYCStatus(null)
+      setPortfolio(null)
+
+      try {
+        const [kyc, portfolioData] = await Promise.all([getKYCStatus(account), getPortfolio(account)])
+        setKYCStatus(kyc)
+        setPortfolio(portfolioData)
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
+
+    loadData()
+  }, [account, isConnected, isCorrectNetwork])
+
+  const totalInvestments = portfolio?.allTransactions?.length || 0
+  const totalInvested = portfolio?.holdings?.reduce((sum, item) => sum + (item.totalInvested || 0), 0) || 0
+  const totalTokens = portfolio?.holdings?.reduce((sum, item) => sum + (item.tokensHeld || 0), 0) || 0
+  const totalDividends = portfolio?.holdings?.reduce((sum, item) => sum + (item.dividendsReceived || 0), 0) || 0
+
+  const kycLabel = kycStatus?.kycStatus === 'approved'
+    ? '✅ Approved'
+    : kycStatus?.kycStatus === 'pending'
+    ? '⏳ Pending'
+    : '❌ Not submitted'
 
   return (
     <section>
       <div className="card">
         <h2>Investor Dashboard</h2>
-        <p>Connect your wallet to check mock KYC status and portfolio holdings stored by the backend.</p>
-        <div className="form-grid" style={{ marginTop: 20, gridTemplateColumns: '1fr auto', alignItems: 'end' }}>
-          <label>
-            Wallet address
-            <input
-              value={wallet}
-              onChange={(event) => setWallet(event.target.value)}
-              placeholder="0x..."
-            />
-          </label>
-          <button className="button-primary" type="button" onClick={handleLookup} disabled={loading}>
-            {loading ? 'Checking...' : 'Load portfolio'}
+        <p>Use your connected wallet to see KYC status, investments, holdings, and dividends.</p>
+
+        {!isMetaMaskInstalled && (
+          <div style={{ marginTop: 16, color: '#fbbf24' }}>
+            MetaMask is required. <a href="https://metamask.io/download.html" target="_blank" rel="noreferrer">Install MetaMask</a> and refresh.
+          </div>
+        )}
+
+        {isMetaMaskInstalled && !isConnected && (
+          <button className="button-secondary" type="button" onClick={connectWallet} style={{ marginTop: 16 }}>
+            Connect MetaMask
           </button>
-        </div>
+        )}
+
+        {isMetaMaskInstalled && isConnected && !isCorrectNetwork && (
+          <button className="button-secondary" type="button" onClick={switchNetwork} style={{ marginTop: 16 }}>
+            Switch network
+          </button>
+        )}
+
+        {isMetaMaskInstalled && isConnected && isCorrectNetwork && (
+          <div style={{ marginTop: 16, color: '#a5f3fc' }}>
+            Connected wallet: <strong>{truncateAddress(account)}</strong>
+          </div>
+        )}
       </div>
+
+      {loading && (
+        <div className="card" style={{ marginTop: 24 }}>
+          <h3>Loading investor data...</h3>
+        </div>
+      )}
 
       {error && (
         <div className="card" style={{ marginTop: 24, borderColor: '#f87171' }}>
@@ -56,41 +94,48 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {kycStatus && (
-        <div className="card" style={{ marginTop: 24 }}>
-          <h3>KYC status</h3>
-          <p>
-            Wallet: <strong>{kycStatus.walletAddress}</strong>
-          </p>
-          <p>
-            Status: <strong>{kycStatus.kycStatus}</strong>
-          </p>
-        </div>
-      )}
-
-      {portfolio && (
+      {!loading && isConnected && isCorrectNetwork && (
         <>
+          <div className="card" style={{ marginTop: 24 }}>
+            <h3>KYC status</h3>
+            <p>{kycLabel}</p>
+            {kycStatus?.walletAddress && <p>Wallet: <strong>{kycStatus.walletAddress}</strong></p>}
+            {kycStatus?.kycStatus !== 'approved' && (
+              <p>
+                <Link to="/kyc" className="button-secondary">Complete KYC</Link>
+              </p>
+            )}
+          </div>
+
           <div className="section-grid" style={{ marginTop: 24, gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
             <div className="card">
               <h3>Total investments</h3>
-              <p style={{ fontSize: '2rem', marginTop: 14 }}>{portfolio.totalInvestments}</p>
+              <p style={{ fontSize: '2rem', marginTop: 14 }}>{totalInvestments}</p>
             </div>
             <div className="card">
-              <h3>Transactions</h3>
-              <p style={{ fontSize: '2rem', marginTop: 14 }}>{portfolio.allTransactions.length}</p>
+              <h3>Total invested</h3>
+              <p style={{ fontSize: '2rem', marginTop: 14 }}>₹{totalInvested.toLocaleString()}</p>
+            </div>
+            <div className="card">
+              <h3>Total tokens</h3>
+              <p style={{ fontSize: '2rem', marginTop: 14 }}>{totalTokens}</p>
+            </div>
+            <div className="card">
+              <h3>Dividends received</h3>
+              <p style={{ fontSize: '2rem', marginTop: 14 }}>₹{totalDividends.toLocaleString()}</p>
             </div>
           </div>
 
           <div className="card" style={{ marginTop: 24 }}>
             <h3>Holdings</h3>
-            {portfolio.holdings.length > 0 ? (
+            {portfolio?.holdings?.length > 0 ? (
               <div style={{ display: 'grid', gap: 14, marginTop: 18 }}>
                 {portfolio.holdings.map((holding) => (
-                  <div key={holding.msmeId} style={{ display: 'grid', gap: 8, padding: 16, background: 'rgba(148, 163, 184, 0.08)', borderRadius: 16 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+                  <div key={holding.msmeId} style={{ display: 'grid', gap: 10, padding: 16, background: 'rgba(148, 163, 184, 0.08)', borderRadius: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                       <div>
                         <strong>{holding.msmeId}</strong>
-                        <p style={{ margin: 4, color: '#94a3b8' }}>{holding.contractAddress || 'No token deployed yet'}</p>
+                        <p style={{ margin: 4, color: '#94a3b8' }}>{holding.contractAddress || 'No token contract'}</p>
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <p>{holding.tokensHeld} tokens</p>
