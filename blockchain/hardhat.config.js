@@ -1,4 +1,9 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config();
+
+const mumbaiRpcUrl = process.env.POLYGON_MUMBAI_RPC || "https://rpc-mumbai.maticvigil.com";
+const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY || "";
+const mumbaiAccounts = deployerPrivateKey ? [deployerPrivateKey] : [];
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -14,8 +19,8 @@ module.exports = {
   },
   networks: {
     mumbai: {
-      url: "https://rpc-mumbai.maticvigil.com",
-      accounts: [],
+      url: mumbaiRpcUrl,
+      accounts: mumbaiAccounts,
       chainId: 80001,
     }
   }
