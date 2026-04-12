@@ -1,13 +1,53 @@
 const { getDb } = require('../config/firebase');
 const { v4: uuidv4 } = require('uuid');
 
+const normalizeWallet = (wallet) => String(wallet || '').trim().toLowerCase();
+
+const ensureWalletOwnership = async (db, req, walletAddress) => {
+  const wallet = normalizeWallet(walletAddress);
+  if (!wallet || !/^0x[a-f0-9]{40}$/.test(wallet)) {
+    return { ok: false, status: 400, message: 'Valid wallet address is required' };
+  }
+
+  if (req.user?.role === 'admin') {
+    return { ok: true, wallet };
+  }
+
+  const userDoc = await db.collection('users').doc(req.user.userId).get();
+  if (!userDoc.exists) {
+    return { ok: false, status: 401, message: 'Authenticated user not found' };
+  }
+
+  const user = userDoc.data() || {};
+  const existingWallet = normalizeWallet(user.walletAddress || '');
+
+  if (!existingWallet) {
+    await db.collection('users').doc(req.user.userId).update({
+      walletAddress: wallet,
+      updatedAt: new Date().toISOString(),
+    });
+    return { ok: true, wallet };
+  }
+
+  if (existingWallet !== wallet) {
+    return { ok: false, status: 403, message: 'Access denied for this wallet address' };
+  }
+
+  return { ok: true, wallet };
+};
+
 // POST /api/investor/kyc — Submit mock KYC
 const submitKYC = async (req, res) => {
   try {
     const db = getDb();
     const { walletAddress, fullName, panNumber, aadhaarLast4, email } = req.body;
 
-    const wallet = walletAddress.toLowerCase();
+    const ownership = await ensureWalletOwnership(db, req, walletAddress);
+    if (!ownership.ok) {
+      return res.status(ownership.status).json({ success: false, message: ownership.message });
+    }
+
+    const wallet = ownership.wallet;
     const kycId = `kyc_${uuidv4().replace(/-/g, '').slice(0, 12)}`;
 
     // Check if already submitted
@@ -50,7 +90,12 @@ const submitKYC = async (req, res) => {
 const getKYCStatus = async (req, res) => {
   try {
     const db = getDb();
-    const wallet = req.params.wallet.toLowerCase();
+    const ownership = await ensureWalletOwnership(db, req, req.params.wallet);
+    if (!ownership.ok) {
+      return res.status(ownership.status).json({ success: false, message: ownership.message });
+    }
+
+    const wallet = ownership.wallet;
     const doc = await db.collection('kyc_records').doc(wallet).get();
 
     if (!doc.exists) {
@@ -80,10 +125,15 @@ const recordTransaction = async (req, res) => {
       amount, tokens
     } = req.body;
 
+    const ownership = await ensureWalletOwnership(db, req, walletAddress);
+    if (!ownership.ok) {
+      return res.status(ownership.status).json({ success: false, message: ownership.message });
+    }
+
     const txId = `tx_${uuidv4().replace(/-/g, '').slice(0, 12)}`;
     const txData = {
       txId, txHash,
-      walletAddress: walletAddress.toLowerCase(),
+      walletAddress: ownership.wallet,
       msmeId, contractAddress,
       type, amount: parseFloat(amount) || 0,
       tokens: parseFloat(tokens) || 0,
@@ -103,7 +153,12 @@ const recordTransaction = async (req, res) => {
 const getPortfolio = async (req, res) => {
   try {
     const db = getDb();
-    const wallet = req.params.wallet.toLowerCase();
+    const ownership = await ensureWalletOwnership(db, req, req.params.wallet);
+    if (!ownership.ok) {
+      return res.status(ownership.status).json({ success: false, message: ownership.message });
+    }
+
+    const wallet = ownership.wallet;
 
     const txSnapshot = await db.collection('transactions')
       .where('walletAddress', '==', wallet)

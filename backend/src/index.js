@@ -1,18 +1,44 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { initFirebase, getDb } = require('./config/firebase');
 
 const msmeRoutes = require('./routes/msme');
 const investorRoutes = require('./routes/investor');
 const riskRoutes = require('./routes/risk');
+const authRoutes = require('./routes/auth');
+const { seedDefaultAdmin } = require('./controllers/authController');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+const parseAllowedOrigins = () => {
+  const configured = (process.env.CORS_ORIGINS || '').split(',').map((item) => item.trim()).filter(Boolean);
+  if (configured.length > 0) return configured;
+  return ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
+};
+
+const requireStrongSecretsInProd = () => {
+  if (NODE_ENV !== 'production') return;
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 24) {
+    throw new Error('JWT_SECRET must be set with at least 24 characters in production.');
+  }
+};
 
 // Middleware
+app.use(helmet());
+app.use(rateLimit({
+  windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
+  max: Number(process.env.RATE_LIMIT_MAX || 250),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many requests, please try again later.' },
+}));
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'],
+  origin: parseAllowedOrigins(),
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
@@ -34,6 +60,7 @@ app.get('/health', (req, res) => {
 app.use('/api/msme', msmeRoutes);
 app.use('/api/investor', investorRoutes);
 app.use('/api/risk', riskRoutes);
+app.use('/api/auth', authRoutes);
 
 // 404
 app.use((req, res) => {
@@ -72,6 +99,7 @@ const seedLocalData = async () => {
         contactEmail: 'asha@textiles.com',
         status: 'active',
         contractAddress: '0x0000000000000000000000000000000000000003',
+        onChainId: 1,
         tokenSymbol: 'ATH',
         ipfsCid: 'QmSampleCid01',
         ipfsUrl: 'https://ipfs.io/ipfs/QmSampleCid01',
@@ -96,6 +124,7 @@ const seedLocalData = async () => {
         contactEmail: 'ramesh@cityfresh.com',
         status: 'active',
         contractAddress: '0x0000000000000000000000000000000000000005',
+        onChainId: 2,
         tokenSymbol: 'CFO',
         ipfsCid: 'QmSampleCid02',
         ipfsUrl: 'https://ipfs.io/ipfs/QmSampleCid02',
@@ -116,7 +145,11 @@ const seedLocalData = async () => {
 };
 
 // Start
+requireStrongSecretsInProd();
 initFirebase();
+if (NODE_ENV !== 'production' || process.env.ALLOW_DEFAULT_ADMIN_SEED === 'true') {
+  seedDefaultAdmin().catch((err) => console.warn('seedDefaultAdmin error:', err.message || err));
+}
 seedLocalData().catch((err) => console.warn('seedLocalData error:', err));
 app.listen(PORT, () => {
   console.log(`\n🚀 MSME Equity Platform API running on port ${PORT}`);

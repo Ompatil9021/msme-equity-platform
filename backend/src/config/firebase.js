@@ -7,17 +7,22 @@ let db;
 const localStoragePath = path.resolve(__dirname, '../../backend-local-db.json');
 
 const saveLocalDb = (data) => {
-  fs.writeFileSync(localStoragePath, JSON.stringify(data, null, 2));
+  try {
+    fs.writeFileSync(localStoragePath, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.warn('Could not write local backend data file:', err.message);
+  }
 };
 
 const createLocalFirestore = () => {
   let data = {};
   try {
-    if (fs.existsSync(localStoragePath)) {
-      data = JSON.parse(fs.readFileSync(localStoragePath, 'utf8') || '{}');
+    if (!fs.existsSync(localStoragePath)) {
+      fs.writeFileSync(localStoragePath, '{}');
     }
+    data = JSON.parse(fs.readFileSync(localStoragePath, 'utf8') || '{}');
   } catch (err) {
-    console.warn('Could not read local backend data file, starting fresh.');
+    console.warn('Could not read local backend data file, starting fresh.', err.message);
     data = {};
   }
 

@@ -22,7 +22,21 @@
       "ipfsUrl": "https://ipfs.io/ipfs/QmSampleCid01",
       "riskLabel": "Moderate",
       "createdAt": "2026-04-01T12:51:56.534Z",
-      "updatedAt": "2026-04-01T12:51:56.534Z"
+      "updatedAt": "2026-04-02T07:47:10.781Z",
+      "riskScore": 37,
+      "riskColor": "#eab308",
+      "riskDescription": "mature business with moderate revenue in manufacturing operating from a Tier-2 city.",
+      "riskExplanation": "mature business with moderate revenue in manufacturing operating from a Tier-2 city.",
+      "riskBreakdown": {
+        "revenueScore": 8,
+        "ageScore": 5,
+        "sectorScore": 12,
+        "locationScore": 12
+      },
+      "revenueScore": 8,
+      "ageScore": 5,
+      "sectorScore": 12,
+      "locationScore": 12
     },
     "msme_demo_02": {
       "msmeId": "msme_demo_02",
@@ -46,7 +60,8 @@
       "ipfsUrl": "https://ipfs.io/ipfs/QmSampleCid02",
       "riskLabel": "High",
       "createdAt": "2026-04-01T12:51:56.534Z",
-      "updatedAt": "2026-04-01T12:51:56.534Z"
+      "updatedAt": "2026-04-02T07:30:53.633Z",
+      "riskScore": 53
     },
     "msme_2e8874f37d30": {
       "msmeId": "msme_2e8874f37d30",
@@ -68,11 +83,23 @@
       "tokenSymbol": null,
       "ipfsCid": "QmMOCK1775069689697",
       "riskLabel": "High",
-      "riskScore": 62,
-      "riskDescription": "Higher risk with significant growth upside",
+      "riskScore": 75,
+      "riskDescription": "very new business with mid revenue in food & beverage operating from a other city.",
       "createdAt": "2026-04-01T18:54:49.695Z",
-      "updatedAt": "2026-04-01T18:54:49.695Z",
-      "ipfsUrl": "https://ipfs.io/ipfs/QmMOCK1775069689697"
+      "updatedAt": "2026-04-02T07:48:04.612Z",
+      "ipfsUrl": "https://ipfs.io/ipfs/QmMOCK1775069689697",
+      "riskColor": "#f97316",
+      "riskExplanation": "very new business with mid revenue in food & beverage operating from a other city.",
+      "riskBreakdown": {
+        "revenueScore": 12,
+        "ageScore": 25,
+        "sectorScore": 18,
+        "locationScore": 20
+      },
+      "revenueScore": 12,
+      "ageScore": 25,
+      "sectorScore": 18,
+      "locationScore": 20
     },
     "msme_c19112828f96": {
       "msmeId": "msme_c19112828f96",
@@ -97,7 +124,7 @@
       "riskScore": 47,
       "riskDescription": "Higher risk with significant growth upside",
       "createdAt": "2026-04-01T19:12:22.694Z",
-      "updatedAt": "2026-04-01T19:12:22.694Z",
+      "updatedAt": "2026-04-02T07:31:12.356Z",
       "ipfsUrl": "https://ipfs.io/ipfs/QmMOCK1775070742696"
     },
     "msme_52d47950496d": {
@@ -123,8 +150,90 @@
       "riskScore": 64,
       "riskDescription": "Higher risk with significant growth upside",
       "createdAt": "2026-04-02T04:37:18.379Z",
-      "updatedAt": "2026-04-02T04:37:18.379Z",
+      "updatedAt": "2026-04-02T07:30:47.160Z",
       "ipfsUrl": "https://ipfs.io/ipfs/QmMOCK1775104638381"
+    },
+    "msme_d80fcc71f898": {
+      "msmeId": "msme_d80fcc71f898",
+      "businessName": "Om Pavvadas",
+      "category": "Food & Beverage",
+      "city": "Dhule",
+      "gstNumber": "07AAGFF2194N1Z1",
+      "foundingYear": 2022,
+      "companyValuation": 10000,
+      "targetAmount": 300,
+      "equityPercentage": 3,
+      "equityPercentOffered": 3,
+      "totalTokenSupply": 100,
+      "tokensForSale": 1,
+      "tokensSold": 0,
+      "tokenPrice": 3,
+      "ownershipPerToken": 0.03,
+      "founderTokens": 99,
+      "annualRevenue": 99999,
+      "employeeCount": -1,
+      "businessDescription": "i want funding",
+      "founderWallet": "0xf65e7717ae6e5b2cf71660c8f7f0030d13a7135a",
+      "founderName": "OM Patil",
+      "contactEmail": "om1010@gmail.com",
+      "status": "active",
+      "contractAddress": null,
+      "onChainId": null,
+      "tokenSymbol": null,
+      "ipfsCid": "QmMOCK1775115922653",
+      "ipfsUrl": "https://ipfs.io/ipfs/QmMOCK1775115922653",
+      "riskLabel": "High",
+      "riskScore": 75,
+      "riskDescription": "growth-stage business with very low revenue in food & beverage operating from a other city.",
+      "createdAt": "2026-04-02T07:45:22.649Z",
+      "updatedAt": "2026-04-02T07:48:11.410Z",
+      "vestingEnd": "2026-09-29T07:45:22.649Z",
+      "riskColor": "#f97316",
+      "riskExplanation": "growth-stage business with very low revenue in food & beverage operating from a other city.",
+      "riskBreakdown": {
+        "revenueScore": 25,
+        "ageScore": 12,
+        "sectorScore": 18,
+        "locationScore": 20
+      },
+      "revenueScore": 25,
+      "ageScore": 12,
+      "sectorScore": 18,
+      "locationScore": 20
+    },
+    "msme_bcd8f891df25": {
+      "msmeId": "msme_bcd8f891df25",
+      "businessName": "Temp Pavvada",
+      "category": "Food & Beverage",
+      "city": "Shirpur",
+      "gstNumber": "07CVHPK6026N1Z6",
+      "foundingYear": 2023,
+      "companyValuation": 99999,
+      "targetAmount": 2000,
+      "equityPercentage": 2,
+      "equityPercentOffered": 2,
+      "totalTokenSupply": 100,
+      "tokensForSale": 1,
+      "tokensSold": 0,
+      "tokenPrice": 20,
+      "ownershipPerToken": 0.02,
+      "founderTokens": 99,
+      "annualRevenue": 1000000,
+      "employeeCount": 0,
+      "businessDescription": "i want funding",
+      "founderWallet": "0xf65e7717ae6e5b2cf71660c8f7f0030d13a7135a",
+      "founderName": "OM Patil",
+      "contactEmail": "jayeshkaranke1010@gmail.com",
+      "status": "active",
+      "contractAddress": "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F",
+      "onChainId": 1,
+      "tokenSymbol": "MSME",
+      "ipfsCid": "QmMOCK1775117433855",
+      "ipfsUrl": "https://ipfs.io/ipfs/QmMOCK1775117433855",
+      "createdAt": "2026-04-02T08:10:33.852Z",
+      "updatedAt": "2026-04-12T17:27:44.396Z",
+      "vestingEnd": "2026-09-29T08:10:33.851Z",
+      "deployTxHash": "0xcc8b3856e15b61ce2cfce6d24808b5ea080ac35a7e38c00c913fabec84d8047b"
     }
   },
   "kyc_records": {
@@ -175,6 +284,30 @@
       "submittedAt": "2026-04-02T03:46:44.521Z",
       "approvedAt": "2026-04-02T03:46:44.521Z",
       "note": "MOCK KYC — Hackathon prototype only. Real KYC requires SEBI-compliant verification."
+    },
+    "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266": {
+      "kycId": "kyc_3b2cd2b13cb4",
+      "walletAddress": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+      "fullName": "Om Patil",
+      "panLast4": "876C",
+      "aadhaarLast4": "5844",
+      "email": "jayeshkaranke1010@gmail.com",
+      "status": "approved",
+      "submittedAt": "2026-04-02T10:02:21.778Z",
+      "approvedAt": "2026-04-02T10:02:21.778Z",
+      "note": "MOCK KYC — Hackathon prototype only. Real KYC requires SEBI-compliant verification."
+    },
+    "0x7ff020eddf75169f56844fbfb4581d8bac09764f": {
+      "kycId": "kyc_4e0c6e3a8be4",
+      "walletAddress": "0x7ff020eddf75169f56844fbfb4581d8bac09764f",
+      "fullName": "Om Patil",
+      "panLast4": "234F",
+      "aadhaarLast4": "1264",
+      "email": "ompatil902123@gmail.com",
+      "status": "approved",
+      "submittedAt": "2026-04-12T16:55:33.202Z",
+      "approvedAt": "2026-04-12T16:55:33.202Z",
+      "note": "MOCK KYC — Hackathon prototype only. Real KYC requires SEBI-compliant verification."
     }
   },
   "transactions": {
@@ -201,6 +334,45 @@
       "tokens": 26,
       "polygonscanUrl": "https://mumbai.polygonscan.com/tx/0xe380fbe23b2fb000000000000000000000000000000000000000000000000000",
       "createdAt": "2026-04-02T03:48:42.393Z"
+    }
+  },
+  "users": {
+    "user_4c88fe437076": {
+      "userId": "user_4c88fe437076",
+      "name": "Platform Admin",
+      "email": "admin@msme.local",
+      "role": "admin",
+      "passwordHash": "$2b$10$eRNg3ZpjcvtvKfvegFiF9O8g7kAaSQJILbWN.JjW7X00rGIEgLgOi",
+      "createdAt": "2026-04-12T17:48:42.705Z",
+      "updatedAt": "2026-04-12T17:48:42.705Z"
+    },
+    "user_f8233c04dbb0": {
+      "userId": "user_f8233c04dbb0",
+      "name": "Om Patil",
+      "email": "ompatil902123@gmail.com",
+      "role": "entrepreneur",
+      "passwordHash": "$2b$10$2Nl1Tz/cSsa07mhdQ5AqMe85A7qR40t5C/q6T8iic7J9kDF.J6QDi",
+      "createdAt": "2026-04-12T17:50:07.432Z",
+      "updatedAt": "2026-04-12T17:50:07.432Z"
+    },
+    "user_134245e8f78c": {
+      "userId": "user_134245e8f78c",
+      "name": "Jay Patil",
+      "email": "ompatil@gmail.com",
+      "role": "entrepreneur",
+      "passwordHash": "$2b$10$252JHczBHUPr0znK6lfoe.mOXUSdyXkmBiSwoKUl0FxrqmmNU1Mxy",
+      "createdAt": "2026-04-12T17:51:20.646Z",
+      "updatedAt": "2026-04-12T17:51:20.646Z"
+    },
+    "user_360fd7696ad7": {
+      "userId": "user_360fd7696ad7",
+      "name": "krishna",
+      "email": "krishna@gmail.com",
+      "role": "investor",
+      "passwordHash": "$2b$10$jRZiqmtMY7DKDZVABB0j/OnjWqTZWl8lz85U4Z9inQjD7vgE6d5du",
+      "createdAt": "2026-04-12T17:52:16.873Z",
+      "updatedAt": "2026-04-12T17:58:27.667Z",
+      "walletAddress": "0x7ff020eddf75169f56844fbfb4581d8bac09764f"
     }
   }
 }

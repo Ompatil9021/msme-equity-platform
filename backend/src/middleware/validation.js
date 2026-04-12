@@ -31,8 +31,8 @@ const validateMSMEListing = (req, res, next) => {
     errors.push("Invalid founding year");
 
   const target = parseFloat(targetAmount);
-  if (!targetAmount || target < 10000 || target > 1000000)
-    errors.push("Target amount must be ₹10,000 to ₹10,00,000");
+  if (!targetAmount || target <= 0)
+    errors.push("Enter a valid target amount.");
 
   const equity = parseFloat(equityPercentage);
   if (!equityPercentage || equity < 1 || equity > 20)

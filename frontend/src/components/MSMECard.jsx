@@ -12,6 +12,15 @@ export default function MSMECard({ listing }) {
   const tokenStatus = tokensRemaining === 0 ? 'Sold Out' : tokensRemaining === 1 ? '1 token remaining' : `${tokensRemaining} tokens remaining`
   const statusColor = tokensRemaining === 0 ? '#f87171' : tokensRemaining === 1 ? '#fbbf24' : '#34d399'
 
+  const riskScore = listing.riskScore != null ? listing.riskScore : null
+  const riskLabel = listing.riskLabel || 'Unknown'
+  const riskColor = riskScore != null
+    ? riskScore <= 30 ? '#22c55e'
+    : riskScore <= 55 ? '#eab308'
+    : riskScore <= 75 ? '#f97316'
+    : '#ef4444'
+    : '#94a3b8'
+
   return (
     <article className="card">
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
@@ -19,7 +28,11 @@ export default function MSMECard({ listing }) {
           <h3>{listing.businessName || listing.name}</h3>
           <p>{listing.businessDescription || listing.description}</p>
         </div>
-        <span style={{ color: '#a5f3fc', fontWeight: 600 }}>{listing.riskLabel || 'Unknown'}</span>
+        <div style={{ textAlign: 'right' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 999, padding: '6px 12px', background: `${riskColor}22`, color: riskColor, fontWeight: 700 }}>
+            {riskScore != null ? `${riskScore} • ${riskLabel}` : riskLabel}
+          </span>
+        </div>
       </div>
       <div className="badge">
         <span>{listing.category}</span>

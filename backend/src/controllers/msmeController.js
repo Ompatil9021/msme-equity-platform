@@ -32,6 +32,18 @@ const createMSMEListing = async (req, res) => {
 
     const maxTokensForSale = Math.floor(totalTokenSupplyNum * equityPercentOfferedNum / 100);
 
+    const defaultContractAddress = process.env.CONTRACT_ADDRESS || process.env.DEFAULT_CONTRACT_ADDRESS || process.env.VITE_CONTRACT_ADDRESS || null;
+    const shouldAssignOnChain = defaultContractAddress && /^0x[a-fA-F0-9]{40}$/.test(defaultContractAddress);
+    let onChainId = null;
+    if (shouldAssignOnChain) {
+      const snapshot = await db.collection('msme_listings').get();
+      const existingMaxId = snapshot.docs.reduce((maxId, doc) => {
+        const docId = Number(doc.data()?.onChainId);
+        return Number.isInteger(docId) && docId > maxId ? docId : maxId;
+      }, 0);
+      onChainId = existingMaxId + 1;
+    }
+
     if (!businessName?.trim()) {
       return res.status(400).json({ success: false, message: 'Business name is required' });
     }
@@ -41,8 +53,8 @@ const createMSMEListing = async (req, res) => {
     if (!city?.trim()) {
       return res.status(400).json({ success: false, message: 'City is required' });
     }
-    if (isNaN(companyValuationNum) || companyValuationNum < 100000) {
-      return res.status(400).json({ success: false, message: 'Company valuation must be at least ₹1,00,000' });
+    if (isNaN(companyValuationNum) || companyValuationNum <= 0) {
+      return res.status(400).json({ success: false, message: 'Enter a valid company valuation.' });
     }
     if (isNaN(equityPercentOfferedNum) || equityPercentOfferedNum < 1 || equityPercentOfferedNum > 20) {
       return res.status(400).json({ success: false, message: 'Equity percent must be between 1 and 20' });
@@ -96,8 +108,8 @@ const createMSMEListing = async (req, res) => {
       founderName: founderName?.trim() || '',
       contactEmail: contactEmail?.trim() || '',
       status: 'active',
-      contractAddress: null,
-      onChainId: null,
+      contractAddress: shouldAssignOnChain ? defaultContractAddress : null,
+      onChainId: shouldAssignOnChain ? onChainId : null,
       tokenSymbol: null,
       ipfsCid: null,
       ipfsUrl: null,
@@ -151,8 +163,20 @@ const getAllListings = async (req, res) => {
 
     query = query.limit(parseInt(limit, 10));
 
+    const fallbackContractAddress = process.env.CONTRACT_ADDRESS || process.env.DEFAULT_CONTRACT_ADDRESS || process.env.VITE_CONTRACT_ADDRESS || null;
+    const validFallbackContractAddress = fallbackContractAddress && /^0x[a-fA-F0-9]{40}$/.test(fallbackContractAddress) ? fallbackContractAddress : null;
+
     const snapshot = await query.get();
-    const listings = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const listings = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      const effectiveOnChainId = Number.isInteger(data.onChainId) ? Number(data.onChainId) : null;
+      return {
+        id: doc.id,
+        ...data,
+        contractAddress: (data.contractAddress && data.contractAddress.toString().trim()) ? data.contractAddress.toString().trim() : validFallbackContractAddress,
+        onChainId: Number.isInteger(effectiveOnChainId) ? effectiveOnChainId : null,
+      };
+    });
 
     res.json({ success: true, count: listings.length, data: listings });
   } catch (err) {
@@ -172,7 +196,21 @@ const getMSMEById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'MSME not found' });
     }
 
-    res.json({ success: true, data: { id: doc.id, ...doc.data() } });
+    const data = doc.data();
+    const fallbackContractAddress = process.env.CONTRACT_ADDRESS || process.env.DEFAULT_CONTRACT_ADDRESS || process.env.VITE_CONTRACT_ADDRESS || null;
+    const validFallbackContractAddress = fallbackContractAddress && /^0x[a-fA-F0-9]{40}$/.test(fallbackContractAddress) ? fallbackContractAddress : null;
+    const effectiveContractAddress = (data.contractAddress && data.contractAddress.toString().trim()) ? data.contractAddress.toString().trim() : validFallbackContractAddress;
+    const effectiveOnChainId = Number.isInteger(data.onChainId) ? Number(data.onChainId) : null;
+
+    res.json({
+      success: true,
+      data: {
+        id: doc.id,
+        ...data,
+        contractAddress: effectiveContractAddress,
+        onChainId: Number.isInteger(effectiveOnChainId) ? effectiveOnChainId : null,
+      },
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }

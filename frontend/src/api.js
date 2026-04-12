@@ -1,9 +1,17 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const AUTH_TOKEN_KEY = 'msme_auth_token';
 
 const request = async (path, options = {}) => {
   const url = `${BASE_URL}${path}`;
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  const mergedHeaders = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.headers || {}),
+  };
+
   const response = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: mergedHeaders,
     ...options,
   });
 
@@ -37,6 +45,8 @@ export const calculateRisk = async (payload) => request('/api/risk/calculate', {
   body: JSON.stringify(payload),
 });
 
+export const getRiskByMSME = async (msmeId) => request(`/api/risk/${msmeId}`);
+
 export const submitKYC = async (payload) => request('/api/investor/kyc', {
   method: 'POST',
   body: JSON.stringify(payload),
@@ -50,3 +60,17 @@ export const recordTransaction = async (payload) => request('/api/investor/trans
 export const getKYCStatus = async (walletAddress) => request(`/api/investor/kyc/${walletAddress}`);
 
 export const getPortfolio = async (walletAddress) => request(`/api/investor/portfolio/${walletAddress}`);
+
+export const registerUser = async (payload) => request('/api/auth/register', {
+  method: 'POST',
+  body: JSON.stringify(payload),
+});
+
+export const loginUser = async (payload) => request('/api/auth/login', {
+  method: 'POST',
+  body: JSON.stringify(payload),
+});
+
+export const getCurrentUser = async () => request('/api/auth/me');
+
+export const fetchAdminUsers = async () => request('/api/auth/users');

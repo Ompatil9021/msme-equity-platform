@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "D:\\msme-equity-platform\\blockchain\\contracts\\MSMEEquityToken.sol": {
-      "lastModificationDate": 1775112626214,
-      "contentHash": "f46fb24d4ad5e3c588d4402f80da0b98",
+      "lastModificationDate": 1776014696421,
+      "contentHash": "9c74fb51b02bf5e7100e54194895a83f",
       "sourceName": "contracts/MSMEEquityToken.sol",
       "solcConfig": {
         "version": "0.8.24",

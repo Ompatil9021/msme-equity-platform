@@ -39,6 +39,7 @@ contract MSMEEquityToken is ERC20, Ownable, ReentrancyGuard, Pausable {
     event KYCRevoked(address indexed investor);
     event MSMERegistered(uint256 indexed msmeId, address indexed founder, string firestoreId);
     event TokensPurchased(uint256 indexed msmeId, address indexed investor, uint256 tokenCount, uint256 amountPaid);
+    event FounderPayout(uint256 indexed msmeId, address indexed founder, uint256 amountPaidWei);
     event FundingCompleted(uint256 indexed msmeId, uint256 tokensSold, uint256 amountRaisedWei);
     event FundingFailed(uint256 indexed msmeId, uint256 amountRaisedWei);
     event MoreTokensListed(uint256 indexed msmeId, uint256 additionalTokens);
@@ -133,6 +134,11 @@ contract MSMEEquityToken is ERC20, Ownable, ReentrancyGuard, Pausable {
         listing.amountRaisedWei += totalCost;
         tokenBalance[msmeId][msg.sender] += tokenCount;
         _mint(msg.sender, tokenCount * 10**decimals());
+
+        // Send proceeds directly to founder wallet on each purchase.
+        (bool founderPaid, ) = payable(listing.founder).call{value: totalCost}("");
+        require(founderPaid, "Founder payout failed");
+        emit FounderPayout(msmeId, listing.founder, totalCost);
 
         if (msg.value > totalCost) {
             payable(msg.sender).transfer(msg.value - totalCost);

@@ -19,8 +19,30 @@ const initialState = {
   contactEmail: '',
 }
 
+const categories = [
+  'Manufacturing',
+  'Retail',
+  'Food & Beverage',
+  'Technology',
+  'Agriculture',
+  'Textile',
+  'Healthcare',
+  'Education',
+  'Service',
+  'Other',
+]
+
 export default function OnboardPage() {
-  const { account, isMetaMaskInstalled, isConnected, isCorrectNetwork, connectWallet, switchNetwork, truncateAddress } = useWallet()
+  const {
+    account,
+    isMetaMaskInstalled,
+    isConnected,
+    isCorrectNetwork,
+    connectWallet,
+    switchNetwork,
+    truncateAddress,
+  } = useWallet()
+
   const [form, setForm] = useState(initialState)
   const [status, setStatus] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -46,6 +68,7 @@ export default function OnboardPage() {
 
   const handleChange = (event) => {
     const { name, value } = event.target
+
     if (name === 'tokensForSale') {
       const sanitized = Math.max(1, Math.min(Number(value) || 1, maxTokensForSale))
       setForm((prev) => ({ ...prev, [name]: String(sanitized) }))
@@ -103,8 +126,8 @@ export default function OnboardPage() {
       return
     }
 
-    if (companyValuation < 100000) {
-      setError('Company valuation must be at least ₹1,00,000.')
+    if (companyValuation <= 0) {
+      setError('Enter a valid company valuation.')
       setLoading(false)
       return
     }
@@ -174,146 +197,274 @@ export default function OnboardPage() {
 
   return (
     <section>
-      <div className="card">
-        <h2>MSME Business Listing & Onboarding</h2>
-        <p>Register your business, token economics, and fundraising terms on the platform.</p>
-        <div style={{ marginTop: 16 }}>
-          {!isMetaMaskInstalled ? (
-            <div style={{ color: '#fbbf24' }}>MetaMask is required for onboarding. Install it and refresh.</div>
-          ) : !isConnected ? (
-            <button className="button-secondary" type="button" onClick={connectWallet}>
-              Connect MetaMask
+      <div className="section-grid" style={{ marginTop: 24, gridTemplateColumns: 'minmax(320px, 420px) 1fr', gap: 24, alignItems: 'flex-start' }}>
+        <div className="card" style={{ position: 'sticky', top: 24, display: 'grid', gap: 24 }}>
+          <div>
+            <h1 style={{ fontSize: '2.4rem', lineHeight: 1.1, marginBottom: 16, color: '#f8fafc' }}>
+              Register your business profile, fundraising target, equity terms, and documents for immutable access.
+            </h1>
+            <p style={{ color: '#cbd5e1', lineHeight: 1.7 }}>
+              Submit your MSME profile with GST details, funding goals, founder information, and investor-ready summary.
+            </p>
+          </div>
+
+          <div className="badge" style={{ display: 'grid', gap: 12 }}>
+            <span style={{ background: 'rgba(71,85,105,0.2)', color: '#e2e8f0' }}>Instant preview of fundraise value and equity.</span>
+            <span style={{ background: 'rgba(71,85,105,0.2)', color: '#e2e8f0' }}>Auto-fill founder wallet from MetaMask.</span>
+            <span style={{ background: 'rgba(71,85,105,0.2)', color: '#e2e8f0' }}>Fast, single-page MSME onboarding.</span>
+          </div>
+
+          <div className="card" style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(148,163,184,0.12)', padding: 20 }}>
+            <h2 style={{ color: '#f8fafc', marginBottom: 14 }}>Live funding preview</h2>
+            <div style={{ display: 'grid', gap: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
+                <span>Fundraising target</span>
+                <strong>₹{formattedValue(targetAmount)}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
+                <span>Equity offered</span>
+                <strong>{equityPercentOffered}%</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
+                <span>Estimated token price</span>
+                <strong>₹{formattedValue(Math.round(tokenPrice))}</strong>
+              </div>
+            </div>
+            <div style={{ marginTop: 18 }}>
+              <div style={{ background: 'rgba(148,163,184,0.15)', borderRadius: 999, height: 10, overflow: 'hidden' }}>
+                <div style={{ width: `${Math.min(100, equityPercentOffered)}%`, height: '100%', background: 'linear-gradient(90deg, #7c3aed, #2563eb)' }} />
+              </div>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: 8 }}>Equity share visualization</p>
+            </div>
+          </div>
+
+          <div className="card" style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(148,163,184,0.12)', padding: 20 }}>
+            <h2 style={{ color: '#f8fafc', marginBottom: 14 }}>Wallet status</h2>
+            {!isMetaMaskInstalled ? (
+              <p style={{ color: '#fbbf24' }}>MetaMask is required for onboarding.</p>
+            ) : !isConnected ? (
+              <button
+                className="button-secondary"
+                type="button"
+                onClick={connectWallet}
+                style={{ width: '100%' }}
+              >
+                Connect MetaMask
+              </button>
+            ) : !isCorrectNetwork ? (
+              <button
+                className="button-secondary"
+                type="button"
+                onClick={switchNetwork}
+                style={{ width: '100%' }}
+              >
+                Switch network
+              </button>
+            ) : (
+              <p style={{ color: '#e2e8f0' }}>
+                Connected: <strong style={{ color: '#fff' }}>{truncateAddress(account)}</strong>
+              </p>
+            )}
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="card" style={{ padding: 32, minWidth: 0 }}>
+          <div className="grid" style={{ gap: 20, gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+            <label className="space-y-2 text-sm text-slate-200">
+              <span className="block font-medium">Business name</span>
+              <input
+                name="businessName"
+                type="text"
+                value={form.businessName}
+                onChange={handleChange}
+                placeholder="Asha Textiles"
+                required
+              />
+            </label>
+
+            <label className="space-y-2 text-sm text-slate-200">
+              <span className="block font-medium">Category</span>
+              <select
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                required
+              >
+                <option value="" disabled>
+                  Select category
+                </option>
+                {categories.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="space-y-2 text-sm text-slate-200">
+              <span className="block font-medium">City</span>
+              <input
+                name="city"
+                type="text"
+                value={form.city}
+                onChange={handleChange}
+                placeholder="Surat"
+                required
+              />
+            </label>
+
+            <label className="space-y-2 text-sm text-slate-200">
+              <span className="block font-medium">GST number</span>
+              <input
+                name="gstNumber"
+                type="text"
+                value={form.gstNumber}
+                onChange={handleChange}
+                placeholder="24AABPA1234M1Z1"
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mt-6 grid" style={{ gap: 20, gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+            <label className="space-y-2 text-sm text-slate-200">
+              <span className="block font-medium">Founding year</span>
+              <input
+                name="foundingYear"
+                type="number"
+                value={form.foundingYear}
+                onChange={handleChange}
+                placeholder="2015"
+              />
+            </label>
+
+            <label className="space-y-2 text-sm text-slate-200">
+              <span className="block font-medium">Annual revenue</span>
+              <input
+                name="annualRevenue"
+                type="number"
+                value={form.annualRevenue}
+                onChange={handleChange}
+                placeholder="1200000"
+              />
+            </label>
+
+            <label className="space-y-2 text-sm text-slate-200">
+              <span className="block font-medium">Fundraising target</span>
+              <input
+                name="companyValuation"
+                type="number"
+                value={form.companyValuation}
+                onChange={handleChange}
+                placeholder="1000000"
+                required
+              />
+            </label>
+
+            <label className="space-y-2 text-sm text-slate-200">
+              <span className="block font-medium">Equity offered (%)</span>
+              <input
+                name="equityPercentOffered"
+                type="number"
+                min="1"
+                max="20"
+                value={form.equityPercentOffered}
+                onChange={handleChange}
+                placeholder="12"
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mt-6 grid" style={{ gap: 20, gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+            <label className="space-y-2 text-sm text-slate-200">
+              <span className="block font-medium">Employee count</span>
+              <input
+                name="employeeCount"
+                type="number"
+                value={form.employeeCount}
+                onChange={handleChange}
+                placeholder="15"
+              />
+            </label>
+
+            <label className="space-y-2 text-sm text-slate-200">
+              <span className="block font-medium">Founder wallet</span>
+              <input
+                name="founderWallet"
+                type="text"
+                value={account ? truncateAddress(account) : ''}
+                placeholder="0x..."
+                readOnly
+              />
+              <small className="text-slate-400">Automatically filled from MetaMask when connected.</small>
+            </label>
+
+            <label className="space-y-2 text-sm text-slate-200">
+              <span className="block font-medium">Founder name</span>
+              <input
+                name="founderName"
+                type="text"
+                value={form.founderName}
+                onChange={handleChange}
+                placeholder="Asha Patel"
+              />
+            </label>
+
+            <label className="space-y-2 text-sm text-slate-200">
+              <span className="block font-medium">Contact email</span>
+              <input
+                name="contactEmail"
+                type="email"
+                value={form.contactEmail}
+                onChange={handleChange}
+                placeholder="founder@example.com"
+              />
+            </label>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            <label className="block text-sm font-medium text-slate-200">Business summary</label>
+            <textarea
+              name="businessDescription"
+              value={form.businessDescription}
+              onChange={handleChange}
+              placeholder="Short description for investor marketplace"
+              rows="5"
+            />
+          </div>
+
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              className="button-primary"
+              type="submit"
+              disabled={loading || !isMetaMaskInstalled || !isConnected || !isCorrectNetwork}
+            >
+              {loading ? 'Submitting...' : 'Submit listing request'}
             </button>
-          ) : !isCorrectNetwork ? (
-            <button className="button-secondary" type="button" onClick={switchNetwork}>
-              Switch network
+            <button
+              className="button-secondary"
+              type="button"
+              onClick={() => setForm(initialState)}
+            >
+              Reset
             </button>
-          ) : (
-            <div style={{ marginTop: 10, color: '#a5f3fc' }}>
-              Connected as <strong>{truncateAddress(account)}</strong>
+          </div>
+
+          {status && (
+            <div className="mt-6 rounded-2xl border border-emerald-500 bg-emerald-500/10 px-5 py-4 text-sm text-emerald-300">
+              <p>{status.message || 'Listing request submitted successfully.'}</p>
+              {status.ipfsCid && <p>IPFS CID: {status.ipfsCid}</p>}
             </div>
           )}
-        </div>
+
+          {error && (
+            <div className="mt-6 rounded-2xl border border-rose-500 bg-rose-500/10 px-5 py-4 text-sm text-rose-200">
+              {error}
+            </div>
+          )}
+        </form>
       </div>
-
-      <form onSubmit={handleSubmit} className="card" style={{ marginTop: 24 }}>
-        <h3>Step 1: Company Valuation</h3>
-        <div className="form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-          <label>
-            What is your company's total value? (₹)
-            <input
-              name="companyValuation"
-              type="number"
-              min="100000"
-              value={form.companyValuation}
-              onChange={handleChange}
-              placeholder="e.g. ₹10,00,000"
-              required
-            />
-            <small>This is what you believe your entire business is worth today.</small>
-          </label>
-          <label>
-            What % of your company are you selling to investors? (%)
-            <input
-              name="equityPercentOffered"
-              type="range"
-              min="1"
-              max="20"
-              value={form.equityPercentOffered}
-              onChange={handleChange}
-            />
-            <input
-              name="equityPercentOffered"
-              type="number"
-              min="1"
-              max="20"
-              value={form.equityPercentOffered}
-              onChange={handleChange}
-              style={{ marginTop: 8, width: '100%' }}
-            />
-            <small>e.g. 20% means investors will own 20% of your company.</small>
-          </label>
-          <div style={{ gridColumn: '1 / -1', padding: 16, background: '#0f172a', borderRadius: 12, color: '#e2e8f0' }}>
-            <strong>You will raise: ₹{formattedValue(targetAmount)}</strong>
-          </div>
-        </div>
-
-        <h3 style={{ marginTop: 24 }}>Step 2: Token Creation</h3>
-        <div className="form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-          <label>
-            How many total tokens do you want to create?
-            <input
-              name="totalTokenSupply"
-              type="number"
-              min="10"
-              max="10000"
-              value={form.totalTokenSupply}
-              onChange={handleChange}
-              placeholder="e.g. 100"
-              required
-            />
-            <small>Think of these as shares in your company. More tokens = smaller price per token.</small>
-          </label>
-          <label>
-            How many tokens will you sell to investors?
-            <input
-              name="tokensForSale"
-              type="number"
-              min="1"
-              max={maxTokensForSale}
-              value={form.tokensForSale}
-              onChange={handleChange}
-              placeholder="e.g. 3"
-              required
-            />
-            <small>You can sell fewer tokens now and list more later.</small>
-          </label>
-          <div style={{ gridColumn: '1 / -1', padding: 16, background: '#0f172a', borderRadius: 12, color: '#e2e8f0' }}>
-            <h4>📊 Token Economics Preview</h4>
-            <p>Company Valuation: ₹{formattedValue(companyValuation)}</p>
-            <p>Equity for sale: {equityPercentOffered}%</p>
-            <p>Total tokens created: {formattedValue(totalTokenSupply)}</p>
-            <p>Tokens for sale: {formattedValue(tokensForSale)}</p>
-            <p>✅ Price per token: ₹{formattedValue(Math.round(tokenPrice))}</p>
-            <p>✅ Total you will raise: ₹{formattedValue(Math.round(totalRaiseNow))}</p>
-            <p>✅ Each token = {ownershipPerToken.toFixed(2)}% ownership</p>
-            <p>✅ Founder keeps: {formattedValue(founderTokens)} tokens (locked 6 mo)</p>
-            <p>✅ Max investor ownership: {maxInvestorOwnership.toFixed(2)}%</p>
-          </div>
-        </div>
-
-        <h3 style={{ marginTop: 24 }}>Step 3: Review before submit</h3>
-        <div style={{ padding: 20, background: '#111827', borderRadius: 16, color: '#f8fafc' }}>
-          <h4>🏪 {form.businessName || 'Your MSME'} — Token Review</h4>
-          <p>Company Value: ₹{formattedValue(companyValuation)}</p>
-          <p>You are selling: {equityPercentOffered}% equity</p>
-          <p>Total tokens: {formattedValue(totalTokenSupply)} (like shares)</p>
-          <p>Selling now: {formattedValue(tokensForSale)} tokens</p>
-          <p>Price per token: ₹{formattedValue(Math.round(tokenPrice))}</p>
-          <p>Money to raise: ₹{formattedValue(Math.round(totalRaiseNow))}</p>
-          <p>Your tokens (locked 6 months): {formattedValue(founderTokens)}</p>
-          <p>Investor max share: {maxInvestorOwnership.toFixed(2)}%</p>
-          <div style={{ marginTop: 16, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button className="button-primary" type="submit" disabled={loading || !isConnected || !isCorrectNetwork || !isMetaMaskInstalled}>
-              {loading ? 'Submitting...' : '✅ Confirm & List'}
-            </button>
-            <button className="button-secondary" type="button" onClick={() => setForm(initialState)}>
-              ✏️ Edit
-            </button>
-          </div>
-        </div>
-
-        {status && (
-          <div style={{ marginTop: 20, color: '#86efac' }}>
-            <p>{status.message || 'Listing request submitted successfully.'}</p>
-            {status.ipfsCid && <p>IPFS CID: {status.ipfsCid}</p>}
-          </div>
-        )}
-
-        {error && (
-          <p style={{ marginTop: 20, color: '#fca5a5' }}>{error}</p>
-        )}
-      </form>
     </section>
   )
 }
